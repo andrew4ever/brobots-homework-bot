@@ -43,7 +43,7 @@ def homework_done(message: types.Message):
         kb.add(
             types.InlineKeyboardButton(
                 text='{} - {}'.format(s['name'], s['classId']),
-                callback_data='send_homework:{}:{}'.format(
+                callback_data='send_hw:{}:{}'.format(
                     s['name'], s['classId'])
             )
         )
@@ -126,7 +126,7 @@ def add_teacher(message: types.Message):
     for sub in subjectsDb:
         kb.add(
             types.KeyboardButton(
-                '{} - {}\n'.format(sub['name'], sub['classId'])
+                '{} - {}'.format(sub['name'], sub['classId'])
             )
         )
 
@@ -302,15 +302,17 @@ def inline_button(callback: types.CallbackQuery):
         bot.edit_message_text(base, callback.from_user.id,
                               callback.message.message_id)
 
-    elif title == 'send_homework':
+    elif title == 'send_hw':
         s = subjectsDb.search(
             (Subject.name == val[0]) & (Subject.classId == val[1]))[0]
+        student = services.find_student(callback.from_user.id, config)
 
         for i in homework:
             if i[0] != u.id:
                 continue
 
-            bot.send_message(s['teacherId'], config['BOT']['NEW_HOMEWORK'])
+            bot.send_message(s['teacherId'], config['BOT']
+                             ['NEW_HOMEWORK'].format(student['name']))
 
             for m in i[1]:
                 bot.forward_message(s['teacherId'], i[0], m)
