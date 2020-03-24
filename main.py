@@ -22,6 +22,43 @@ def start_menu(message: types.Message):
     bot.reply_to(message, config['BOT']['START'])
 
 
+@bot.message_handler(commands=['subjects'])
+def all_subjects(message: types.Message):
+    if not services.is_admin(message.chat.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    base = config['BOT']['SUBJECTS_LIST']
+
+    for s in subjectsDb:
+        base += '{} - {}\n'.format(s['name'], s['classId'])
+
+    if not len(subjectsDb):
+        bot.reply_to(message, config['BOT']['NO_SUBJECTS'])
+        return
+
+    bot.reply_to(message, base)
+
+
+@bot.message_handler(commands=['classes'])
+def all_classes(message: types.Message):
+    if not services.is_admin(message.chat.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    base = config['BOT']['CLASSES_LIST']
+    classes = services.classes_list(config)
+
+    for c in classes:
+        base += c
+
+    if not len(classes):
+        bot.reply_to(message, config['BOT']['NO_CLASSES'])
+        return
+
+    bot.reply_to(message, base)
+
+
 @bot.message_handler(commands=['teacher_request'])
 def add_teacher(message: types.Message):
     u = message.from_user
