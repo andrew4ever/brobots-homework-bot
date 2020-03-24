@@ -286,6 +286,9 @@ def inline_button(callback: types.CallbackQuery):
             base += s['name']
             base += '\n'
 
+        if not len(studentDb):
+            base += config['BOT']['EMPTY_LIST']
+
         bot.edit_message_text(base, callback.from_user.id,
                               callback.message.message_id)
 
