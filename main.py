@@ -59,6 +59,25 @@ def all_classes(message: types.Message):
     bot.reply_to(message, base)
 
 
+@bot.message_handler(commands=['student_request'])
+def add_student(message: types.Message):
+    u = message.from_user
+    classes = services.classes_list(config)
+
+    if not len(classes):
+        bot.reply_to(message, config['BOT']['NO_CLASSES'])
+
+    kb = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+
+    for c in classes:
+        kb.add(
+            types.KeyboardButton(c)
+        )
+
+    bot.reply_to(message, config['BOT']['CHOOSE_CLASS'], reply_markup=kb)
+    queue.append((u.id, 'student_request', services.username(u)))
+
+
 @bot.message_handler(commands=['teacher_request'])
 def add_teacher(message: types.Message):
     u = message.from_user
@@ -155,6 +174,26 @@ def text_answers(message: types.Message):
                     message.text, services.username(message.from_user)),
                 kwargs={'reply_markup': kb})
 
+        elif i[1] == 'student_request':
+            bot.reply_to(
+                message, config['BOT']['REQUEST_SENT'],
+                reply_markup=types.ReplyKeyboardRemove()
+            )
+
+            kb = types.InlineKeyboardMarkup()
+            kb.add(types.InlineKeyboardButton(
+                text=config['BOT']['KEYBOARDS']['YES'],
+                callback_data='add_student:{}:{}:{}'.format(
+                    message.chat.id, message.text, i[2]
+                ))
+            )
+
+            services.send_to_admins(
+                bot, config,
+                config['BOT']['ADD_STUDENT'].format(
+                    message.text, services.username(message.from_user)),
+                kwargs={'reply_markup': kb})
+
         queue.remove(i)
 
 
@@ -178,6 +217,13 @@ def inline_button(callback: types.CallbackQuery):
             (Subject.name == subject) & (Subject.classId == classId)
         )
 
+        bot.send_message(u.id, config['BOT']['SUCCESS'])
+
+    elif title == 'add_student':
+        studentDb = tinydb.TinyDB(
+            config['DB']['CLASSES']['PATH'].format(val[1]))
+
+        studentDb.insert({'telegramId': val[0], 'name': val[2]})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
 
