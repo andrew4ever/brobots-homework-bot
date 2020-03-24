@@ -31,9 +31,15 @@ def homework_start(message: types.Message):
 
 @bot.message_handler(commands=['done'])
 def homework_done(message: types.Message):
+    if not [i for i in homework if i[0] == message.chat.id]:
+        return
+
+    student = services.find_student(message.chat.id, config)
+    classId = student['classId']
+
     kb = types.InlineKeyboardMarkup()
 
-    for s in subjectsDb:
+    for s in subjectsDb.search(Subject.classId == classId):
         kb.add(
             types.InlineKeyboardButton(
                 text='{} - {}'.format(s['name'], s['classId']),
@@ -165,7 +171,7 @@ def create_subject(message: types.Message):
     queue.append((u.id, 'subject_name'))
 
 
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(content_types=['text', 'audio', 'document', 'photo'])
 def text_answers(message: types.Message):
     for i in queue:
         if i[0] != message.chat.id:
