@@ -15,11 +15,39 @@ subjectsDb = tinydb.TinyDB(config['DB']['SUBJECTS']['PATH'])
 Subject = tinydb.Query()
 
 queue = []
+homework = []
 
 
 @bot.message_handler(commands=['start'])
 def start_menu(message: types.Message):
     bot.reply_to(message, config['BOT']['START'])
+
+
+@bot.message_handler(commands=['send_homework'])
+def homework_start(message: types.Message):
+    bot.reply_to(message, config['BOT']['HOMEWORK_INSTRUCTIONS'])
+    homework.append([message.chat.id, []])
+
+
+@bot.message_handler(commands=['done'])
+def homework_done(message: types.Message):
+    kb = types.InlineKeyboardMarkup()
+
+    for s in subjectsDb:
+        kb.add(
+            types.InlineKeyboardButton(
+                text='{} - {}'.format(s['name'], s['classId']),
+                callback_data='send_homework:{}:{}'.format(
+                    s['name'], s['classId'])
+            )
+        )
+
+    if not len(subjectsDb):
+        bot.reply_to(message, config['BOT']['NO_SUBJECTS'])
+        return
+
+    bot.reply_to(message,
+                 config['BOT']['CHOOSE_SUBJECT'], reply_markup=kb)
 
 
 @bot.message_handler(commands=['commands'])
@@ -105,7 +133,7 @@ def add_teacher(message: types.Message):
     for sub in subjectsDb:
         kb.add(
             types.KeyboardButton(
-                ' - '.join([sub['name'], sub['classId']])
+                '{} - {}\n'.format(sub['name'], sub['classId'])
             )
         )
 
@@ -210,6 +238,12 @@ def text_answers(message: types.Message):
 
         queue.remove(i)
 
+    for i in homework:
+        if i[0] != message.chat.id:
+            continue
+
+        i[1].append(message.message_id)
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def inline_button(callback: types.CallbackQuery):
@@ -232,6 +266,7 @@ def inline_button(callback: types.CallbackQuery):
         )
 
         bot.send_message(u.id, config['BOT']['SUCCESS'])
+        bot.send_message(val[0], config['BOT']['APPROVED'])
 
     elif title == 'add_student':
         studentDb = tinydb.TinyDB(
@@ -239,6 +274,7 @@ def inline_button(callback: types.CallbackQuery):
 
         studentDb.insert({'telegramId': val[0], 'name': val[2]})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
+        bot.send_message(val[0], config['BOT']['APPROVED'])
 
     elif title == 'show_students':
         studentDb = tinydb.TinyDB(
@@ -252,6 +288,23 @@ def inline_button(callback: types.CallbackQuery):
 
         bot.edit_message_text(base, callback.from_user.id,
                               callback.message.message_id)
+
+    elif title == 'send_homework':
+        s = subjectsDb.search(
+            (Subject.name == val[0]) & (Subject.classId == val[1]))[0]
+
+        for i in homework:
+            if i[0] != u.id:
+                continue
+
+            bot.send_message(s['teacherId'], config['BOT']['NEW_HOMEWORK'])
+
+            for m in i[1]:
+                bot.forward_message(s['teacherId'], i[0], m)
+
+            bot.send_message(s['teacherId'], config['BOT']['NEW_HOMEWORK_END'])
+
+        bot.send_message(u.id, config['BOT']['SUCCESS'])
 
 
 if __name__ == '__main__':
