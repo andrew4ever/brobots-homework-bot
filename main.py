@@ -181,7 +181,7 @@ def text_answers(message: types.Message):
             for c in classes:
                 kb.row(
                     types.InlineKeyboardButton(
-                        c, callback_data='create_subject:{}:{}'.format(
+                        c, callback_data='add_subject:{}:{}'.format(
                             message.text, c)
                     )
                 )
@@ -262,7 +262,7 @@ def inline_button(callback: types.CallbackQuery):
     title = callback.data.split(':')[0]
     val = callback.data.split(':')[1:]
 
-    if title == 'create_subject':
+    if title == 'add_subject':
         subjectsDb.insert(
             {'name': val[0], 'classId': val[1], 'teacherId': None})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
