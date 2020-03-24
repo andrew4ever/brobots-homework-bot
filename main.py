@@ -25,6 +25,11 @@ def start_menu(message: types.Message):
 @bot.message_handler(commands=['teacher_request'])
 def add_teacher(message: types.Message):
     u = message.from_user
+
+    if not len(subjectsDb):
+        bot.reply_to(message, config['BOT']['NO_SUBJECTS'])
+        return
+
     kb = types.ReplyKeyboardMarkup(one_time_keyboard=True)
 
     for sub in subjectsDb:
