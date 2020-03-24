@@ -12,6 +12,8 @@ if not os.path.exists(config['DB']['PATH']):
 
 bot = telebot.TeleBot(config['BOT']['TOKEN'])
 subjectsDb = tinydb.TinyDB(config['DB']['SUBJECTS']['PATH'])
+Subject = tinydb.Query()
+
 queue = []
 
 
@@ -22,16 +24,18 @@ def start_menu(message: types.Message):
 
 @bot.message_handler(commands=['teacher_request'])
 def add_teacher(message: types.Message):
-    kb = types.ReplyKeyboardMarkup(row_width=1)
+    u = message.from_user
+    kb = types.ReplyKeyboardMarkup(one_time_keyboard=True)
 
     for sub in subjectsDb:
         kb.add(
             types.KeyboardButton(
-                ' '.join([sub['name'], sub['classId']])
+                ' - '.join([sub['name'], sub['classId']])
             )
         )
 
     bot.reply_to(message, config['BOT']['CHOOSE_SUBJECT'], reply_markup=kb)
+    queue.append((u.id, 'teacher_request'))
 
 
 @bot.message_handler(commands=['create_class'])
@@ -89,6 +93,26 @@ def text_answers(message: types.Message):
             bot.reply_to(message, config['BOT']
                          ['CHOOSE_CLASS'], reply_markup=kb)
 
+        elif i[1] == 'teacher_request':
+            bot.reply_to(
+                message, config['BOT']['REQUEST_SENT'],
+                reply_markup=types.ReplyKeyboardRemove()
+            )
+
+            kb = types.InlineKeyboardMarkup()
+            kb.add(types.InlineKeyboardButton(
+                text=config['BOT']['KEYBOARDS']['YES'],
+                callback_data='add_teacher:{}:{}'.format(
+                    message.chat.id, message.text
+                ))
+            )
+
+            services.send_to_admins(
+                bot, config,
+                config['BOT']['ADD_TEACHER'].format(
+                    message.text, services.username(message.from_user)),
+                kwargs={'reply_markup': kb})
+
         queue.remove(i)
 
 
@@ -102,6 +126,16 @@ def inline_button(callback: types.CallbackQuery):
     if title == 'create_subject':
         subjectsDb.insert(
             {'name': val[0], 'classId': val[1], 'teacherId': None})
+        bot.send_message(u.id, config['BOT']['SUCCESS'])
+
+    elif title == 'add_teacher':
+        subject, classId = val[1].split(' - ')
+
+        subjectsDb.update(
+            {'teacherId': val[0]},
+            (Subject.name == subject) & (Subject.classId == classId)
+        )
+
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
 
