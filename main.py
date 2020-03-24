@@ -22,6 +22,15 @@ def start_menu(message: types.Message):
     bot.reply_to(message, config['BOT']['START'])
 
 
+@bot.message_handler(commands=['commands'])
+def admin_commands(message: types.Message):
+    if not services.is_admin(message.chat.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    bot.reply_to(message, config['BOT']['ADMIN_COMMANDS'])
+
+
 @bot.message_handler(commands=['subjects'])
 def all_subjects(message: types.Message):
     if not services.is_admin(message.chat.id, config):
@@ -46,17 +55,22 @@ def all_classes(message: types.Message):
         bot.reply_to(message, config['BOT']['NO_ACCESS'])
         return
 
-    base = config['BOT']['CLASSES_LIST']
+    kb = types.InlineKeyboardMarkup()
     classes = services.classes_list(config)
 
     for c in classes:
-        base += c
+        kb.add(
+            types.InlineKeyboardButton(
+                text=c,
+                callback_data='show_students:{}'.format(c)
+            )
+        )
 
     if not len(classes):
         bot.reply_to(message, config['BOT']['NO_CLASSES'])
         return
 
-    bot.reply_to(message, base)
+    bot.reply_to(message, config['BOT']['CHOOSE_CLASS'], reply_markup=kb)
 
 
 @bot.message_handler(commands=['student_request'])
@@ -225,6 +239,19 @@ def inline_button(callback: types.CallbackQuery):
 
         studentDb.insert({'telegramId': val[0], 'name': val[2]})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
+
+    elif title == 'show_students':
+        studentDb = tinydb.TinyDB(
+            config['DB']['CLASSES']['PATH'].format(val[0]))
+
+        base = config['BOT']['STUDENTS_LIST']
+
+        for s in studentDb:
+            base += s['name']
+            base += '\n'
+
+        bot.edit_message_text(base, callback.from_user.id,
+                              callback.message.message_id)
 
 
 if __name__ == '__main__':
