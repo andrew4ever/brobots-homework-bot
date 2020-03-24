@@ -109,21 +109,8 @@ def all_classes(message: types.Message):
 
 @bot.message_handler(commands=['student_request'])
 def add_student(message: types.Message):
-    u = message.from_user
-    classes = services.classes_list(config)
-
-    if not len(classes):
-        bot.reply_to(message, config['BOT']['NO_CLASSES'])
-
-    kb = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-
-    for c in classes:
-        kb.add(
-            types.KeyboardButton(c)
-        )
-
-    bot.reply_to(message, config['BOT']['CHOOSE_CLASS'], reply_markup=kb)
-    queue.append((u.id, 'student_request', services.username(u)))
+    bot.reply_to(message, config['BOT']['ENTER_NAME'])
+    queue.append((message.chat.id, 'student_request'))
 
 
 @bot.message_handler(commands=['teacher_request'])
@@ -223,6 +210,23 @@ def text_answers(message: types.Message):
                 kwargs={'reply_markup': kb})
 
         elif i[1] == 'student_request':
+            classes = services.classes_list(config)
+
+            if not len(classes):
+                bot.reply_to(message, config['BOT']['NO_CLASSES'])
+
+            kb = types.ReplyKeyboardMarkup(one_time_keyboard=True)
+
+            for c in classes:
+                kb.add(
+                    types.KeyboardButton('{}:{}'.format(c, message.text))
+                )
+
+            bot.reply_to(message, config['BOT']
+                         ['CHOOSE_CLASS'], reply_markup=kb)
+            queue.append((message.chat.id, 'student_register'))
+
+        elif i[1] == 'student_register':
             bot.reply_to(
                 message, config['BOT']['REQUEST_SENT'],
                 reply_markup=types.ReplyKeyboardRemove()
@@ -231,15 +235,15 @@ def text_answers(message: types.Message):
             kb = types.InlineKeyboardMarkup()
             kb.add(types.InlineKeyboardButton(
                 text=config['BOT']['KEYBOARDS']['YES'],
-                callback_data='add_student:{}:{}:{}'.format(
-                    message.chat.id, message.text, i[2]
+                callback_data='add_student:{}:{}'.format(
+                    message.chat.id, message.text
                 ))
             )
 
             services.send_to_admins(
                 bot, config,
                 config['BOT']['ADD_STUDENT'].format(
-                    message.text, services.username(message.from_user)),
+                    *message.text.split(':')),
                 kwargs={'reply_markup': kb})
 
         queue.remove(i)
