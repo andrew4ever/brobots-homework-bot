@@ -109,7 +109,7 @@ def all_classes(message: types.Message):
         kb.add(
             types.InlineKeyboardButton(
                 text=c,
-                callback_data='show_students:{}'.format(c)
+                callback_data='show_st:{}'.format(c)
             )
         )
 
@@ -194,7 +194,7 @@ def text_answers(message: types.Message):
             for c in classes:
                 kb.row(
                     types.InlineKeyboardButton(
-                        c, callback_data='add_subject:{}:{}'.format(
+                        c, callback_data='add_su:{}:{}'.format(
                             message.text, c)
                     )
                 )
@@ -211,7 +211,7 @@ def text_answers(message: types.Message):
             kb = types.InlineKeyboardMarkup()
             kb.add(types.InlineKeyboardButton(
                 text=config['BOT']['KEYBOARDS']['YES'],
-                callback_data='add_teacher:{}:{}'.format(
+                callback_data='add_t:{}:{}'.format(
                     message.chat.id, message.text
                 ))
             )
@@ -248,7 +248,7 @@ def text_answers(message: types.Message):
             kb = types.InlineKeyboardMarkup()
             kb.add(types.InlineKeyboardButton(
                 text=config['BOT']['KEYBOARDS']['YES'],
-                callback_data='add_student:{}:{}'.format(
+                callback_data='add_st:{}:{}'.format(
                     message.chat.id, message.text
                 ))
             )
@@ -275,12 +275,12 @@ def inline_button(callback: types.CallbackQuery):
     title = callback.data.split(':')[0]
     val = callback.data.split(':')[1:]
 
-    if title == 'add_subject':
+    if title == 'add_su':
         subjectsDb.insert(
             {'name': val[0], 'classId': val[1], 'teacherId': None})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
-    elif title == 'add_teacher':
+    elif title == 'add_t':
         subject, classId = val[1].split(' - ')
 
         subjectsDb.update(
@@ -291,7 +291,7 @@ def inline_button(callback: types.CallbackQuery):
         bot.send_message(u.id, config['BOT']['SUCCESS'])
         bot.send_message(val[0], config['BOT']['APPROVED'])
 
-    elif title == 'add_student':
+    elif title == 'add_st':
         studentDb = tinydb.TinyDB(
             config['DB']['CLASSES']['PATH'].format(val[1]))
 
@@ -300,7 +300,7 @@ def inline_button(callback: types.CallbackQuery):
         bot.send_message(val[0], config['BOT']['APPROVED'])
         bot.send_message(val[0], config['BOT']['HOMEWORK_PREINSTRUCTIONS'])
 
-    elif title == 'show_students':
+    elif title == 'show_st':
         studentDb = tinydb.TinyDB(
             config['DB']['CLASSES']['PATH'].format(val[0]))
 
