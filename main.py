@@ -120,6 +120,30 @@ def all_classes(message: types.Message):
     bot.reply_to(message, config['BOT']['CHOOSE_CLASS'], reply_markup=kb)
 
 
+@bot.message_handler(commands=['create_subject'])
+def create_subject(message: types.Message):
+    u = message.from_user
+
+    if not services.is_admin(u.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    bot.reply_to(message, config['BOT']['ENTER_SUBJECT_NAME'])
+    queue.append((u.id, 'subject_name'))
+
+
+@bot.message_handler(commands=['create_class'])
+def create_class(message: types.Message):
+    u = message.from_user
+
+    if not services.is_admin(u.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    bot.reply_to(message, config['BOT']['ENTER_CLASS_NAME'])
+    queue.append((u.id, 'new_class_name'))
+
+
 @bot.message_handler(commands=['student_request'])
 def add_student(message: types.Message):
     bot.reply_to(message, config['BOT']['ENTER_NAME'])
@@ -145,30 +169,6 @@ def add_teacher(message: types.Message):
 
     bot.reply_to(message, config['BOT']['CHOOSE_SUBJECT'], reply_markup=kb)
     queue.append((u.id, 'teacher_request'))
-
-
-@bot.message_handler(commands=['create_class'])
-def create_class(message: types.Message):
-    u = message.from_user
-
-    if not services.is_admin(u.id, config):
-        bot.reply_to(message, config['BOT']['NO_ACCESS'])
-        return
-
-    bot.reply_to(message, config['BOT']['ENTER_CLASS_NAME'])
-    queue.append((u.id, 'new_class_name'))
-
-
-@bot.message_handler(commands=['create_subject'])
-def create_subject(message: types.Message):
-    u = message.from_user
-
-    if not services.is_admin(u.id, config):
-        bot.reply_to(message, config['BOT']['NO_ACCESS'])
-        return
-
-    bot.reply_to(message, config['BOT']['ENTER_SUBJECT_NAME'])
-    queue.append((u.id, 'subject_name'))
 
 
 @bot.message_handler(content_types=['text', 'audio', 'document', 'photo'])
@@ -298,6 +298,7 @@ def inline_button(callback: types.CallbackQuery):
         studentDb.insert({'telegramId': val[0], 'name': val[2]})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
         bot.send_message(val[0], config['BOT']['APPROVED'])
+        bot.send_message(val[0], config['BOT']['HOMEWORK_PREINSTRUCTIONS'])
 
     elif title == 'show_students':
         studentDb = tinydb.TinyDB(
@@ -324,13 +325,17 @@ def inline_button(callback: types.CallbackQuery):
             if i[0] != u.id:
                 continue
 
-            bot.send_message(s['teacherId'], config['BOT']
-                             ['NEW_HOMEWORK'].format(student['name']))
+            try:
+                bot.send_message(s['teacherId'], config['BOT']
+                                 ['NEW_HOMEWORK'].format(student['name']))
 
-            for m in i[1]:
-                bot.forward_message(s['teacherId'], i[0], m)
+                for m in i[1]:
+                    bot.forward_message(s['teacherId'], i[0], m)
 
-            bot.send_message(s['teacherId'], config['BOT']['NEW_HOMEWORK_END'])
+                bot.send_message(s['teacherId'], config['BOT']
+                                 ['NEW_HOMEWORK_END'])
+            except:
+                bot.send_message(u.id, config['BOT']['FAILURE'])
 
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
