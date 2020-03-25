@@ -56,6 +56,19 @@ def homework_done(message: types.Message):
                  config['BOT']['CHOOSE_SUBJECT'], reply_markup=kb)
 
 
+@bot.message_handler(commands=['cancel'])
+def cancel_request(message: types.Message):
+    for i in queue:
+        if i[0] == message.chat.id:
+            queue.remove(i)
+
+    for i in homework:
+        if i[0] == message.chat.id:
+            homework.remove(i)
+
+    bot.reply_to(message, config['BOT']['SUCCESS'])
+
+
 @bot.message_handler(commands=['commands'])
 def admin_commands(message: types.Message):
     if not services.is_admin(message.chat.id, config):
