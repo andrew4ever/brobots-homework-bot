@@ -298,6 +298,7 @@ def inline_button(callback: types.CallbackQuery):
         studentDb.insert({'telegramId': val[0], 'name': val[2]})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
         bot.send_message(val[0], config['BOT']['APPROVED'])
+        bot.send_message(val[0], config['BOT']['HOMEWORK_PREINSTRUCTIONS'])
 
     elif title == 'show_students':
         studentDb = tinydb.TinyDB(
@@ -324,13 +325,17 @@ def inline_button(callback: types.CallbackQuery):
             if i[0] != u.id:
                 continue
 
-            bot.send_message(s['teacherId'], config['BOT']
-                             ['NEW_HOMEWORK'].format(student['name']))
+            try:
+                bot.send_message(s['teacherId'], config['BOT']
+                                 ['NEW_HOMEWORK'].format(student['name']))
 
-            for m in i[1]:
-                bot.forward_message(s['teacherId'], i[0], m)
+                for m in i[1]:
+                    bot.forward_message(s['teacherId'], i[0], m)
 
-            bot.send_message(s['teacherId'], config['BOT']['NEW_HOMEWORK_END'])
+                bot.send_message(s['teacherId'], config['BOT']
+                                 ['NEW_HOMEWORK_END'])
+            except:
+                bot.send_message(u.id, config['BOT']['FAILURE'])
 
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
