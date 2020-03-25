@@ -120,6 +120,30 @@ def all_classes(message: types.Message):
     bot.reply_to(message, config['BOT']['CHOOSE_CLASS'], reply_markup=kb)
 
 
+@bot.message_handler(commands=['create_subject'])
+def create_subject(message: types.Message):
+    u = message.from_user
+
+    if not services.is_admin(u.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    bot.reply_to(message, config['BOT']['ENTER_SUBJECT_NAME'])
+    queue.append((u.id, 'subject_name'))
+
+
+@bot.message_handler(commands=['create_class'])
+def create_class(message: types.Message):
+    u = message.from_user
+
+    if not services.is_admin(u.id, config):
+        bot.reply_to(message, config['BOT']['NO_ACCESS'])
+        return
+
+    bot.reply_to(message, config['BOT']['ENTER_CLASS_NAME'])
+    queue.append((u.id, 'new_class_name'))
+
+
 @bot.message_handler(commands=['student_request'])
 def add_student(message: types.Message):
     bot.reply_to(message, config['BOT']['ENTER_NAME'])
@@ -145,30 +169,6 @@ def add_teacher(message: types.Message):
 
     bot.reply_to(message, config['BOT']['CHOOSE_SUBJECT'], reply_markup=kb)
     queue.append((u.id, 'teacher_request'))
-
-
-@bot.message_handler(commands=['create_class'])
-def create_class(message: types.Message):
-    u = message.from_user
-
-    if not services.is_admin(u.id, config):
-        bot.reply_to(message, config['BOT']['NO_ACCESS'])
-        return
-
-    bot.reply_to(message, config['BOT']['ENTER_CLASS_NAME'])
-    queue.append((u.id, 'new_class_name'))
-
-
-@bot.message_handler(commands=['create_subject'])
-def create_subject(message: types.Message):
-    u = message.from_user
-
-    if not services.is_admin(u.id, config):
-        bot.reply_to(message, config['BOT']['NO_ACCESS'])
-        return
-
-    bot.reply_to(message, config['BOT']['ENTER_SUBJECT_NAME'])
-    queue.append((u.id, 'subject_name'))
 
 
 @bot.message_handler(content_types=['text', 'audio', 'document', 'photo'])
