@@ -87,7 +87,11 @@ def all_subjects(message: types.Message):
     base = config['BOT']['SUBJECTS_LIST']
 
     for s in subjectsDb:
-        base += '{} - {}\n'.format(s['name'], s['classId'])
+        base += '{} - {} - {}\n'.format(
+            s['name'],
+            s['classId'],
+            s['teacherId']
+        )
 
     if not len(subjectsDb):
         bot.reply_to(message, config['BOT']['NO_SUBJECTS'])
@@ -211,7 +215,7 @@ def text_answers(message: types.Message):
             kb = types.InlineKeyboardMarkup()
             kb.add(types.InlineKeyboardButton(
                 text=config['BOT']['KEYBOARDS']['YES'],
-                callback_data='add_t:{}:{}'.format(
+                callback_data='at:{}:{}'.format(
                     message.chat.id, message.text
                 ))
             )
@@ -280,7 +284,7 @@ def inline_button(callback: types.CallbackQuery):
             {'name': val[0], 'classId': val[1], 'teacherId': None})
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
-    elif title == 'add_t':
+    elif title == 'at':
         subject, classId = val[1].split(' - ')
 
         subjectsDb.update(
