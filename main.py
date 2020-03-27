@@ -295,14 +295,30 @@ def inline_button(callback: types.CallbackQuery):
         bot.send_message(u.id, config['BOT']['SUCCESS'])
         bot.send_message(val[0], config['BOT']['APPROVED'])
 
+        bot.edit_message_text(callback.message.text + '\n\n' +
+                              config['BOT']['APPROVED'], u.id,
+                              callback.message.message_id)
+
     elif title == 'add_st':
         studentDb = tinydb.TinyDB(
             config['DB']['CLASSES']['PATH'].format(val[1]))
 
+        for s in studentDb:
+            if s['telegramId'] == val[0]:
+                bot.edit_message_text(callback.message.text + '\n\n' +
+                                      config['BOT']['APPROVED'], u.id,
+                                      callback.message.message_id)
+                return
+
         studentDb.insert({'telegramId': val[0], 'name': val[2]})
+
         bot.send_message(u.id, config['BOT']['SUCCESS'])
         bot.send_message(val[0], config['BOT']['APPROVED'])
         bot.send_message(val[0], config['BOT']['HOMEWORK_PREINSTRUCTIONS'])
+
+        bot.edit_message_text(callback.message.text + '\n\n' +
+                              config['BOT']['APPROVED'], u.id,
+                              callback.message.message_id)
 
     elif title == 'show_st':
         studentDb = tinydb.TinyDB(
