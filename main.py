@@ -359,7 +359,8 @@ def inline_button(callback: types.CallbackQuery):
 
             homework.remove(i)
 
-        bot.send_message(u.id, config['BOT']['SUCCESS'])
+        bot.edit_message_text(
+            config['BOT']['SUCCESS'], u.id, callback.message.message_id)
 
 
 if __name__ == '__main__':
