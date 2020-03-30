@@ -18,13 +18,19 @@ queue = []
 homework = []
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start', 'help'])
 def start_menu(message: types.Message):
     bot.reply_to(message, config['BOT']['START'])
 
 
 @bot.message_handler(commands=['send_homework'])
 def homework_start(message: types.Message):
+    student = services.find_student(message.chat.id, config)
+
+    if not student:
+        bot.reply_to(message, config['BOT']['START'])
+        return
+
     bot.reply_to(message, config['BOT']['HOMEWORK_INSTRUCTIONS'])
     homework.append([message.chat.id, []])
 
