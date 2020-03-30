@@ -18,13 +18,19 @@ queue = []
 homework = []
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start', 'help'])
 def start_menu(message: types.Message):
     bot.reply_to(message, config['BOT']['START'])
 
 
 @bot.message_handler(commands=['send_homework'])
 def homework_start(message: types.Message):
+    student = services.find_student(message.chat.id, config)
+
+    if not student:
+        bot.reply_to(message, config['BOT']['START'])
+        return
+
     bot.reply_to(message, config['BOT']['HOMEWORK_INSTRUCTIONS'])
     homework.append([message.chat.id, []])
 
@@ -357,7 +363,10 @@ def inline_button(callback: types.CallbackQuery):
             except:
                 bot.send_message(u.id, config['BOT']['FAILURE'])
 
-        bot.send_message(u.id, config['BOT']['SUCCESS'])
+            homework.remove(i)
+
+        bot.edit_message_text(
+            config['BOT']['SUCCESS'], u.id, callback.message.message_id)
 
 
 if __name__ == '__main__':
