@@ -357,6 +357,8 @@ def inline_button(callback: types.CallbackQuery):
             except:
                 bot.send_message(u.id, config['BOT']['FAILURE'])
 
+            homework.remove(i)
+
         bot.send_message(u.id, config['BOT']['SUCCESS'])
 
 
