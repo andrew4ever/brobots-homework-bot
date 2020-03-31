@@ -375,5 +375,5 @@ def inline_button(callback: types.CallbackQuery):
 while __name__ == '__main__':
     try:
         bot.polling(none_stop=True)
-    except:
-        pass
+    except Exception as e:
+        print(e)
