@@ -188,9 +188,10 @@ def text_answers(message: types.Message):
             continue
 
         if i[1] == 'new_class_name':
-            tinydb.TinyDB(
+            d = tinydb.TinyDB(
                 config['DB']['CLASSES']['PATH'].format(message.text))
             bot.reply_to(message, config['BOT']['SUCCESS'])
+            d.close()
 
         elif i[1] == 'subject_name':
             classes = services.classes_list(config)
@@ -317,6 +318,7 @@ def inline_button(callback: types.CallbackQuery):
                 return
 
         studentDb.insert({'telegramId': val[0], 'name': val[2]})
+        studentDb.close()
 
         bot.send_message(u.id, config['BOT']['SUCCESS'])
         bot.send_message(val[0], config['BOT']['APPROVED'])
@@ -339,6 +341,7 @@ def inline_button(callback: types.CallbackQuery):
         if not len(studentDb):
             base += config['BOT']['EMPTY_LIST']
 
+        studentDb.close()
         bot.edit_message_text(base, callback.from_user.id,
                               callback.message.message_id)
 
@@ -369,5 +372,8 @@ def inline_button(callback: types.CallbackQuery):
             config['BOT']['SUCCESS'], u.id, callback.message.message_id)
 
 
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
+while __name__ == '__main__':
+    try:
+        bot.polling(none_stop=True)
+    except:
+        pass
