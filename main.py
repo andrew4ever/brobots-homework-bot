@@ -72,7 +72,9 @@ def cancel_request(message: types.Message):
         if i[0] == message.chat.id:
             homework.remove(i)
 
-    bot.reply_to(message, config['BOT']['SUCCESS'])
+    kb = types.ReplyKeyboardRemove()
+
+    bot.reply_to(message, config['BOT']['SUCCESS'], reply_markup=kb)
 
 
 @bot.message_handler(commands=['commands'])
