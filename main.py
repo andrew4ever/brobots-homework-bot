@@ -362,6 +362,14 @@ def inline_button(callback: types.CallbackQuery):
             if i[0] != u.id:
                 continue
 
+            kb = types.InlineKeyboardMarkup()
+            kb.add(
+                types.InlineKeyboardButton(
+                    text=config['BOT']['VIEWED'],
+                    callback_data='viewed:{}:{}'.format(u.id, s['name'])
+                )
+            )
+
             try:
                 bot.send_message(s['teacherId'], config['BOT']
                                  ['NEW_HOMEWORK'].format(student['name'],
@@ -371,8 +379,9 @@ def inline_button(callback: types.CallbackQuery):
                 for m in i[1]:
                     bot.forward_message(s['teacherId'], i[0], m)
 
-                bot.send_message(s['teacherId'], config['BOT']
-                                 ['NEW_HOMEWORK_END'])
+                bot.send_message(s['teacherId'],
+                                 config['BOT']['NEW_HOMEWORK_END'],
+                                 reply_markup=kb)
             except:
                 bot.send_message(u.id, config['BOT']['FAILURE'])
 
@@ -380,6 +389,9 @@ def inline_button(callback: types.CallbackQuery):
 
         bot.edit_message_text(
             config['BOT']['SUCCESS'], u.id, callback.message.message_id)
+
+    elif title == 'viewed':
+        bot.send_message(val[0], config['BOT']['VIEWED'] + ' - ' + val[1])
 
     elif title == 'cancel':
         bot.edit_message_text(
