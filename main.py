@@ -263,6 +263,12 @@ def text_answers(message: types.Message):
                     message.chat.id, message.text
                 ))
             )
+            kb.add(types.InlineKeyboardButton(
+                text=config['BOT']['KEYBOARDS']['NO'],
+                callback_data='cancel:{}'.format(
+                    message.chat.id
+                ))
+            )
 
             services.send_to_admins(
                 bot, config,
@@ -356,7 +362,9 @@ def inline_button(callback: types.CallbackQuery):
 
             try:
                 bot.send_message(s['teacherId'], config['BOT']
-                                 ['NEW_HOMEWORK'].format(student['name']))
+                                 ['NEW_HOMEWORK'].format(student['name'],
+                                                         student['classId'],
+                                                         s['name']))
 
                 for m in i[1]:
                     bot.forward_message(s['teacherId'], i[0], m)
@@ -371,9 +379,20 @@ def inline_button(callback: types.CallbackQuery):
         bot.edit_message_text(
             config['BOT']['SUCCESS'], u.id, callback.message.message_id)
 
+    elif title == 'cancel':
+        bot.edit_message_text(
+            callback.message.text,
+            callback.from_user.id,
+            callback.message.message_id
+        )
+        bot.send_message(callback.from_user.id, config['BOT']['CANCELLED'])
 
-while __name__ == '__main__':
-    try:
-        bot.polling(none_stop=True)
-    except Exception as e:
-        print(e)
+
+if __name__ == '__main__':
+    while True:
+        try:
+            bot.polling(none_stop=True)
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(e)
