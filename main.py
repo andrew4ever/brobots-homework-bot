@@ -392,6 +392,7 @@ def inline_button(callback: types.CallbackQuery):
 
     elif title == 'viewed':
         bot.send_message(val[0], config['BOT']['VIEWED'] + ' - ' + val[1])
+        bot.send_message(u.id, config['BOT']['SUCCESS'])
 
     elif title == 'cancel':
         bot.edit_message_text(
